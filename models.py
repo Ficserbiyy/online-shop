@@ -7,6 +7,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class UserBase(SQLModel):
     ''' To Create User'''
     email: str = Field(unique=True)
+    
+class UserCreate(UserBase):
+    ''' For Registration '''
+    password: str = Field(min_length=4)
 
 class User(UserBase, table=True):
     '''User '''
