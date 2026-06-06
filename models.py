@@ -19,13 +19,16 @@ class User(UserBase, table=True):
     is_active: bool = Field(default=True)
     orders: list["Order"] = Relationship(back_populates="user")
     
-class Item(SQLModel, table=True):
-    ''' Item '''
-    id: int | None = Field(primary_key=True, default=None)
+class ItemCreate(SQLModel):
+    ''' To Create an Item in the store '''
     name: str = Field(index=True)
     description: str
     price: float
     stock_quantity: int = Field(default=0)
+
+class Item(ItemCreate, table=True):
+    ''' Item '''
+    id: int | None = Field(primary_key=True, default=None)
     
 class Order(SQLModel, table=True):
     ''' Order '''
@@ -60,4 +63,5 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}/{self.DB_NAME}"
+
 settings = Settings()

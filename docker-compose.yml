@@ -19,6 +19,8 @@ services:
 
   app:
     build: .
+    volumes:
+      - .:/app
     ports:
       - "8000:8000"
     env_file:
