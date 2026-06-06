@@ -10,7 +10,7 @@ router = APIRouter(prefix="/products", tags=["Products"])
 
 
 
-@router.get("/" , tags=['products'])
+@router.get("/")
 async def get_all_items(response: Response, session: AsyncSession = Depends(get_session)):
     ''' To get all Shop Items. Using HTTP Caching. '''
     
@@ -22,7 +22,7 @@ async def get_all_items(response: Response, session: AsyncSession = Depends(get_
     return items
 
 
-@router.post("/", response_model=Item, tags=['products'])
+@router.post("/", response_model=Item)
 async def create_item(
     item_in: ItemCreate,
     session: AsyncSession = Depends(get_session),

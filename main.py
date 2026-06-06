@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, status, Response, APIRouter, HTTPException, Request
 from typing import Final, List
-from dbLogic import create_db_and_tables, engine, get_session, AsyncSession
+from dbLogic import create_db_and_tables, engine, get_session, AsyncSession, redis_client
 from contextlib import asynccontextmanager
 from models import User, UserBase, Item, Order, OrderItem, settings
 from sqlmodel import select
@@ -11,6 +11,7 @@ from items import router as item_router
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
     yield
+    await redis_client.close()
     await engine.dispose()
     
        
