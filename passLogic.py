@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from models import settings
 import jwt, bcrypt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
         
         
 def hash_password(password: str) -> str:
@@ -33,7 +33,7 @@ def create_access_token(data: dict) -> str:
     '''Generate a secure JWT token containing user data with an expiration time.'''
     
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=settings.JWT_EXPIRE)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)

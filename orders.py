@@ -45,4 +45,4 @@ async def create_order(
     
     await session.commit()
     await redis_client.delete("items:all")
-    return {"detail": " Order Successfully created ", "order_id": new_order.id}
+    return {"detail": "Order Successfully created", "order_id": new_order.id}
