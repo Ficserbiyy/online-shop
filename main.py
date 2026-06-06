@@ -6,6 +6,8 @@ from models import User, UserBase, Item, Order, OrderItem, settings
 from sqlmodel import select
 from auth import router as auth_router
 from items import router as item_router
+from orders import router as order_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,7 +20,7 @@ async def lifespan(app: FastAPI):
 app: Final = FastAPI(title="Shop API", lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(item_router)
-
+app.include_router(order_router)
 
 
 @app.get("/")
