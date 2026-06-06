@@ -4,7 +4,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from dbLogic import get_session, redis_client
 from models import Item, OrderItem, Order, ItemCreate, User
 from auth import get_current_user
-
+import json
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -12,13 +12,22 @@ router = APIRouter(prefix="/products", tags=["Products"])
 
 @router.get("/")
 async def get_all_items(response: Response, session: AsyncSession = Depends(get_session)):
-    ''' To get all Shop Items. Using HTTP Caching. '''
+    ''' To get all Shop Items. Using Redis and HTTP Caching. '''
     
-    response.headers["Cache-Control"] = "public, max-age=60" # TTL = 60 seconds
+    redis_key = "items:all"
+    cached_data = await redis_client.get(redis_key)
+    
+    if cached_data:
+        response.headers["Cache-Control"] = "public, max-age=60"     # TTL = 60 seconds
+        return json.loads(cached_data)
+    
     statement = select(Item)
-    
     result = await session.execute(statement)
-    items = result.scalars().all()   
+    items = result.scalars().all()
+       
+    items_json = [item.model_dump() for item in items]
+    await redis_client.set(redis_key, json.dumps(items_json), ex=60) # TTL = 60 seconds
+    response.headers["Cache-Control"] = "public, max-age=60"         # TTL = 60 seconds
     return items
 
 
