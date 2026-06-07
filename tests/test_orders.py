@@ -46,6 +46,7 @@ async def test_create_order_workflow():
         assert order_response.status_code == 201
         res_data = order_response.json()
         assert res_data["detail"] == "Order Successfully created", "Creation Failed"
+        print("ORDER_RESPONSE: ", order_response.json())
         
         # (80 * 2) + (15 * 3) = 205:
         assert res_data["total_cost"] == 205.0
@@ -58,3 +59,17 @@ async def test_create_order_workflow():
         
         assert updated_item1["stock_quantity"] == 3 # 5 - 2 = 3
         assert updated_item2["stock_quantity"] == 7 # 10 - 3 = 7
+        
+        
+        incorrect_order_payload = {
+            "items": [
+                {"item_id": id1, "quantity": 5}
+            ]
+        }
+        bad_order_response = await ac.post("/orders/", json=incorrect_order_payload)
+        
+        assert bad_order_response.status_code == 400
+        assert bad_order_response.json()["detail"] == f'Available quantity of products "Sublime Text 3" in the store: 3'
+        print("BAD_ORDER_RESPONSE: ", bad_order_response.json())
+
+        

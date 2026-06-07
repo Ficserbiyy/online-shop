@@ -1,2 +1,2 @@
 @echo off
-docker-compose exec app pytest
+docker-compose exec app pytest -s
