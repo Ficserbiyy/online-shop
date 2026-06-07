@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
+from pydantic import BaseModel
 
 
 class UserBase(SQLModel):
@@ -35,7 +35,7 @@ class Order(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
     user_id: int = Field(foreign_key="user.id")
     total_price: float
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     user: "User" = Relationship(back_populates="orders")
 
 class OrderItem(SQLModel, table=True):
@@ -43,6 +43,15 @@ class OrderItem(SQLModel, table=True):
     order_id: int = Field(foreign_key="order.id", primary_key=True)
     item_id: int = Field(foreign_key="item.id", primary_key=True)
     quantity: int = Field(default=1)
+
+class OrderItemCreate(BaseModel):
+    ''' Items used when creating an order '''
+    item_id: int
+    quantity: int
+
+class OrderCreate(BaseModel):
+    ''' To create an order '''
+    items: list[OrderItemCreate]
 
 class Settings(BaseSettings):
     ''' Enviroment Settings '''
