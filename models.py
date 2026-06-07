@@ -35,7 +35,7 @@ class Order(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
     user_id: int = Field(foreign_key="user.id")
     total_price: float
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     user: "User" = Relationship(back_populates="orders")
 
 class OrderItem(SQLModel, table=True):
@@ -44,12 +44,12 @@ class OrderItem(SQLModel, table=True):
     item_id: int = Field(foreign_key="item.id", primary_key=True)
     quantity: int = Field(default=1)
 
-class OrderItemCreate(BaseModel):
+class OrderItemCreate(SQLModel):
     ''' Items used when creating an order '''
     item_id: int
     quantity: int
 
-class OrderCreate(BaseModel):
+class OrderCreate(SQLModel):
     ''' To create an order '''
     items: list[OrderItemCreate]
 
