@@ -59,4 +59,48 @@ async def create_item(
     if keys_to_delete:
         await redis_client.delete(*keys_to_delete)    
     return db_item
+
+
+
+
+
+
+@router.put("/{item_id}")
+async def update_product(
+    item_id: int,
+    item_update: ItemCreate,
+    session: AsyncSession = Depends(get_session)
+):
+    ''' To Update the product '''
+    item = await session.get(Item, item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    update_data = item_update.model_dump()
+    for key, value in update_data.items():
+        setattr(item, key, value)
+    
+    session.add(item)
+    await session.commit()
+    await session.refresh(item)
+    
+    await redis_client.delete("items:all") # Cache invalidation    
+    return {"detail": "Item successfully updated", "item": item}
+
+
+@router.delete("/{item_id}")
+async def delete_product(
+    item_id: int,
+    session: AsyncSession = Depends(get_session)
+):
+    ''' To delete the product '''
+    item = await session.get(Item, item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+        
+    await session.delete(item)
+    await session.commit()
+    
+    await redis_client.delete("items:all") # Cache invalidation
+    return {"detail": "Item successfully deleted"}
     
