@@ -15,6 +15,7 @@ async def test_create_order_workflow():
         login_response = await ac.post("/auth/login", data={"username": user_data["email"], "password": user_data["password"]})
         assert login_response.status_code == 200
 
+        
         # Item №1
         item1_res = await ac.post("/products/", json={
             "name": "Sublime Text 3",
@@ -32,24 +33,29 @@ async def test_create_order_workflow():
             "stock_quantity": 10
         })
         id2 = item2_res.json()["id"]
+
         
+        # Result №1
+        res1 = await ac.post("/cart/add", json={"item_id": id1, "quantity": 2})
+        assert res1.status_code == 200
+        # Result №2
+        res2 = await ac.post("/cart/add", json={"item_id": id2, "quantity": 3})
+        assert res2.status_code == 200
         
-        
-        order_payload = {
-            "items": [
-                {"item_id": id1, "quantity": 2},
-                {"item_id": id2, "quantity": 3}
-            ]
-        }
-        order_response = await ac.post("/orders/", json=order_payload)
-        
+            
+        order_response = await ac.post("/orders/")
         assert order_response.status_code == 201
         res_data = order_response.json()
+        
+        
         assert res_data["detail"] == "Order Successfully created", "Creation Failed"
         print("ORDER_RESPONSE: ", order_response.json())
         
         # (80 * 2) + (15 * 3) = 205:
         assert res_data["total_cost"] == 205.0
+        
+        cart_response = await ac.get("/cart/")
+        assert cart_response.json() == {}, "cart is not empty"
 
         products_res = await ac.get("/products/")
         products = products_res.json()
@@ -61,12 +67,8 @@ async def test_create_order_workflow():
         assert updated_item2["stock_quantity"] == 7 # 10 - 3 = 7
         
         
-        incorrect_order_payload = {
-            "items": [
-                {"item_id": id1, "quantity": 5}
-            ]
-        }
-        bad_order_response = await ac.post("/orders/", json=incorrect_order_payload)
+        await ac.post("/cart/add", json={"item_id": id1, "quantity": 5})
+        bad_order_response = await ac.post("/orders/")
         
         assert bad_order_response.status_code == 400
         assert bad_order_response.json()["detail"] == f'Available quantity of products "Sublime Text 3" in the store: 3'
