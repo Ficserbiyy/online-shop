@@ -26,6 +26,13 @@ class ItemCreate(SQLModel):
     price: float
     stock_quantity: int = Field(default=0)
 
+class ItemPatch(SQLModel):
+    ''' To PATCH the item '''
+    name: str | None = None
+    description: str | None = None
+    price: float | None = None
+    stock_quantity: int | None = None
+
 class Item(ItemCreate, table=True):
     ''' Item '''
     id: int | None = Field(primary_key=True, default=None)
