@@ -51,7 +51,12 @@ class OrderItemCreate(SQLModel):
 
 class OrderCreate(SQLModel):
     ''' To create an order '''
-    items: list[OrderItemCreate]
+    items: list[OrderItemCreate]   
+
+class CartUpdate(SQLModel):
+    ''' To update the cart '''
+    item_id: int
+    quantity: int    
 
 class Settings(BaseSettings):
     ''' Enviroment Settings '''
