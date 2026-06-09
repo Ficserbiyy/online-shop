@@ -12,7 +12,7 @@ router = APIRouter(prefix="/products", tags=["Products"])
 
 @router.get("/")
 async def get_all_items(response: Response, session: AsyncSession = Depends(get_session)):
-    ''' To get all Shop Items. Using Redis and HTTP Caching. '''
+    ''' To get all the items from the store. Using Redis and HTTP Caching. '''
     
     redis_key = "items:all"
     cached_data = await redis_client.get(redis_key)
@@ -29,6 +29,28 @@ async def get_all_items(response: Response, session: AsyncSession = Depends(get_
     await redis_client.set(redis_key, json.dumps(items_json), ex=60) # TTL = 60 seconds
     response.headers["Cache-Control"] = "public, max-age=60"         # TTL = 60 seconds
     return items
+
+
+
+@router.get("/{item_id}", response_model=Item)
+async def get_single_item(item_id: int, response: Response, session: AsyncSession = Depends(get_session)):
+    ''' To get one item from the store by ID. Using Redis and HTTP Caching. '''
+    
+    redis_key = f"items:{item_id}"
+    cached_data = await redis_client.get(redis_key)
+    
+    if cached_data:
+        response.headers["Cache-Control"] = "public, max-age=60"     
+        return json.loads(cached_data)
+    
+    item = await session.get(Item, item_id)     
+    if not item:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    await redis_client.set(redis_key, item.model_dump_json(), ex=60) 
+    response.headers["Cache-Control"] = "public, max-age=60"         
+    return item
+
 
 
 
@@ -56,9 +78,7 @@ async def create_item(
     await session.commit()
     await session.refresh(db_item)
     
-    keys_to_delete = await redis_client.keys("items:*")
-    if keys_to_delete:
-        await redis_client.delete(*keys_to_delete)    
+    await redis_client.delete("items:all")
     return db_item
 
 
@@ -85,6 +105,7 @@ async def update_product(
     await session.refresh(item)
     
     await redis_client.delete("items:all") # Cache invalidation    
+    await redis_client.delete(f"items:{item_id}")    
     return {"detail": "Item successfully updated", "item": item}
 
 
@@ -111,6 +132,7 @@ async def patch_product(
     await session.refresh(item)
     
     await redis_client.delete("items:all") # Cache invalidation    
+    await redis_client.delete(f"items:{item_id}")    
     return {"detail": "Item successfully updated", "item": item}
 
     
@@ -130,5 +152,6 @@ async def delete_product(
     await session.commit()
     
     await redis_client.delete("items:all") # Cache invalidation
+    await redis_client.delete(f"items:{item_id}")
     return {"detail": "Item successfully deleted"}
     
