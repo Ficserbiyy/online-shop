@@ -89,7 +89,8 @@ async def create_item(
 async def update_product(
     item_id: int,
     item_update: ItemCreate,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
     ''' To Update the product completely '''
     item = await session.get(Item, item_id)
@@ -116,7 +117,8 @@ async def update_product(
 async def patch_product(
     item_id: int,
     item_update: ItemPatch,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
     ''' To Update the product '''
     item = await session.get(Item, item_id)
@@ -141,7 +143,8 @@ async def patch_product(
 @router.delete("/{item_id}")
 async def delete_product(
     item_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
     ''' To delete the product '''
     item = await session.get(Item, item_id)
