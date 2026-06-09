@@ -36,7 +36,8 @@ class ItemPatch(SQLModel):
 class Item(ItemCreate, table=True):
     ''' Item '''
     id: int | None = Field(primary_key=True, default=None)
-    
+    owner_id: int = Field(foreign_key="user.id")
+
 class Order(SQLModel, table=True):
     ''' Order '''
     id: int | None = Field(primary_key=True, default=None)

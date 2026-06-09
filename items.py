@@ -73,7 +73,7 @@ async def create_item(
             detail="Too many requests at this minute"
         )
         
-    db_item = Item(**item_in.model_dump())
+    db_item = Item.model_validate(item_in, update={"owner_id": current_user.id})    
     session.add(db_item)
     await session.commit()
     await session.refresh(db_item)
@@ -94,8 +94,11 @@ async def update_product(
 ):
     ''' To Update the product completely '''
     item = await session.get(Item, item_id)
+    
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    if item.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden: You are not the author of this product!")
     
     update_data = item_update.model_dump()
     for key, value in update_data.items():
@@ -122,8 +125,11 @@ async def patch_product(
 ):
     ''' To Update the product '''
     item = await session.get(Item, item_id)
+    
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    if item.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden: You are not the author of this product!")
     
     update_data = item_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -148,8 +154,11 @@ async def delete_product(
 ):
     ''' To delete the product '''
     item = await session.get(Item, item_id)
+    
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    if item.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden: You are not the author of this product!")
         
     await session.delete(item)
     await session.commit()
