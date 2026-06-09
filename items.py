@@ -16,15 +16,27 @@ async def get_all_products(
     request: Request, 
     response: Response, 
     search: str | None = None,
+    order_by: str | None = None,
     page: int = 1,
     limit: int = 10,
     session: AsyncSession = Depends(get_session)
 ):
-    ''' To get all the items from the store. Using Redis and HTTP Caching. '''
+    ''' To get all the items from the store. '''
     
     statement = select(Item)
     if search:
         statement = statement.where(col(Item.name).ilike(f"%{search}%"))
+        
+    match order_by:
+        case "price_asc":
+            statement = statement.order_by(col(Item.price))
+        case "price_desc":
+            statement = statement.order_by(col(Item.price).desc())
+        case "id_desc":
+            statement = statement.order_by(col(Item.id).desc())
+        case _:
+            statement = statement.order_by(col(Item.id))
+        
         
     offset = (page - 1) * limit
     statement = statement.offset(offset).limit(limit)
