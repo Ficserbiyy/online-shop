@@ -1,34 +1,58 @@
-from fastapi import APIRouter, Depends, Response, HTTPException, status
-from sqlmodel import select
+from fastapi import APIRouter, Depends, Response, HTTPException, status, Request
+from sqlmodel import select, col
 from sqlmodel.ext.asyncio.session import AsyncSession
 from dbLogic import get_session, redis_client
 from models import Item, OrderItem, Order, ItemCreate, User, ItemPatch
 from auth import get_current_user
 import json
+import hashlib
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
 
 @router.get("/")
-async def get_all_items(response: Response, session: AsyncSession = Depends(get_session)):
+async def get_all_products(
+    request: Request, 
+    response: Response, 
+    search: str | None = None,
+    page: int = 1,
+    limit: int = 10,
+    session: AsyncSession = Depends(get_session)
+):
     ''' To get all the items from the store. Using Redis and HTTP Caching. '''
     
-    redis_key = "items:all"
-    cached_data = await redis_client.get(redis_key)
-    
-    if cached_data:
-        response.headers["Cache-Control"] = "public, max-age=60"     # TTL = 60 seconds
-        return json.loads(cached_data)
-    
     statement = select(Item)
+    if search:
+        statement = statement.where(col(Item.name).ilike(f"%{search}%"))
+        
+    offset = (page - 1) * limit
+    statement = statement.offset(offset).limit(limit)
     result = await session.execute(statement)
-    items = result.scalars().all()
-       
-    items_json = [item.model_dump() for item in items]
-    await redis_client.set(redis_key, json.dumps(items_json), ex=60) # TTL = 60 seconds
-    response.headers["Cache-Control"] = "public, max-age=60"         # TTL = 60 seconds
-    return items
+    products = result.scalars().all()
+    
+    result_data = {
+        "page": page,
+        "limit": limit,
+        "search_query": search,
+        "products": [p.model_dump() for p in products]
+    }
+    
+    # ETag generation
+    json_bytes = json.dumps(result_data, sort_keys=True).encode("utf-8")
+    generated_etag = f'W/"{hashlib.md5(json_bytes).hexdigest()}"'
+    
+    # If-None-Match check
+    client_etag = request.headers.get("If-None-Match")
+    if client_etag == generated_etag:
+        # If the resource hasn't changed, The server responds with 304 Not Modified:
+        response.status_code = 304
+        return Response(status_code=304)
+        
+    # If the resource has changed, The server sends a 200 OK status along with the newly updated content:
+    response.headers["ETag"] = generated_etag
+    response.headers["Cache-Control"] = "no-cache"
+    return result_data
 
 
 
