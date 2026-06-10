@@ -8,6 +8,7 @@ from auth import router as auth_router
 from items import router as item_router
 from orders import router as order_router
 from cart import router as cart_router
+from users import router as user_router
 
 
 @asynccontextmanager
@@ -23,6 +24,7 @@ app.include_router(auth_router)
 app.include_router(item_router)
 app.include_router(order_router)
 app.include_router(cart_router)
+app.include_router(user_router)
 
 
 
