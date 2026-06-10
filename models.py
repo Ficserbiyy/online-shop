@@ -5,26 +5,43 @@ from pydantic import BaseModel
 
 
 class UserBase(SQLModel):
-    ''' To Create User'''
-    email: str = Field(unique=True)
+    ''' To Create the User '''
+    email: str = Field(unique=True, index=True)
     
 class UserCreate(UserBase):
-    ''' For Registration '''
+    ''' For User Registration '''
     password: str = Field(min_length=4)
 
 class User(UserBase, table=True):
-    '''User '''
+    ''' User '''
     id: int | None = Field(primary_key=True, default=None)
+    is_active: bool = True
     hashed_password: str
-    is_active: bool = Field(default=True)
     orders: list["Order"] = Relationship(back_populates="user")
+    description: str | None = None
+    
+class UserPatch(SQLModel):
+    ''' To patch the user profile '''
+    email: str | None = None
+    description: str | None = None
+
+class UserUpdate(SQLModel):
+    ''' To completely update the user profile '''
+    email: str
+    description: str | None = None
+
+class UserPublic(UserBase):
+    ''' Public User Profile '''
+    id: int 
+    description: str | None
+    is_active: bool = True
     
 class ItemCreate(SQLModel):
     ''' To Create an Item in the store '''
     name: str = Field(index=True)
     description: str
     price: float
-    stock_quantity: int = Field(default=0)
+    stock_quantity: int = 0
 
 class ItemPatch(SQLModel):
     ''' To PATCH the item '''
@@ -50,7 +67,7 @@ class OrderItem(SQLModel, table=True):
     ''' Link Table ''' 
     order_id: int = Field(foreign_key="order.id", primary_key=True)
     item_id: int = Field(foreign_key="item.id",ondelete="CASCADE", primary_key=True)
-    quantity: int = Field(default=1)
+    quantity: int = 1
 
 class OrderItemCreate(SQLModel):
     ''' Items used when creating an order '''
