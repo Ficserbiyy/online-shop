@@ -89,6 +89,7 @@ class Settings(BaseSettings):
     DB_PASSWORD: str = "password"
     DB_HOST: str = "db" 
     DB_NAME: str = "shop"
+    TEST_DB_NAME: str = 'shop_test'
     REDIS_URL: str = 'redis://redis:6379'
     SECRET_KEY: str = ''
     JWT_ALGORITHM: str = 'HS256'
@@ -102,5 +103,8 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}/{self.DB_NAME}"
+    @property
+    def TEST_DATABASE_URL(self) -> str:
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:5432/{self.TEST_DB_NAME}"
 
 settings = Settings()

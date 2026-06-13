@@ -3,6 +3,9 @@ services:
 
   db:
     image: postgres:15
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+    - ./init-db:/docker-entrypoint-initdb.d
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -30,3 +33,6 @@ services:
       - redis
     environment:
       - PYTHONUNBUFFERED=1
+
+volumes:
+  postgres_data:
