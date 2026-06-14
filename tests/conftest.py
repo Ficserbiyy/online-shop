@@ -54,7 +54,7 @@ async def clear_redis():
 
 @pytest_asyncio.fixture
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
-    ''' To use the database for our tests '''
+    ''' Use the database for our tests '''
     
     async with TestSessionLocal() as session:
         yield session

@@ -1,7 +1,7 @@
-from models import User, UserBase, UserPublic, UserPatch, UserUpdate
+from models import User, UserPublic, UserPatch, UserUpdate
 from dbLogic import redis_client, get_session, AsyncSession
 from auth import get_current_user
-from fastapi import APIRouter, Depends, Response, HTTPException, status, Request
+from fastapi import APIRouter, Depends, Response, HTTPException
 from sqlmodel import select
 import json
 
@@ -15,7 +15,7 @@ async def get_user_profile(
     response: Response, 
     session: AsyncSession = Depends(get_session)
 ):
-    ''' To receive the user profile by email '''
+    ''' Receive the user profile by email '''
     redis_key = f"user:{email}"
     cached_user = await redis_client.get(redis_key)
     
@@ -42,7 +42,7 @@ async def patch_user_me(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    ''' To patch the user profile  '''
+    ''' Patch the user profile  '''
     old_email = current_user.email
     
     update_dict = user_data.model_dump(exclude_unset=True)
@@ -65,7 +65,7 @@ async def update_user_me(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    ''' To update the user profile completely '''
+    ''' Update the user profile completely '''
     old_email = current_user.email
     
     update_dict = user_data.model_dump()

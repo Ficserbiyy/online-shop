@@ -2,10 +2,9 @@ from fastapi import APIRouter, Depends, Response, HTTPException, status, Request
 from sqlmodel import select, col
 from sqlmodel.ext.asyncio.session import AsyncSession
 from dbLogic import get_session, redis_client
-from models import Item, OrderItem, Order, ItemCreate, User, ItemPatch
+from models import Item, ItemCreate, User, ItemPatch
 from auth import get_current_user
-import json
-import hashlib
+import json, hashlib
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -16,18 +15,18 @@ async def get_all_products(
     request: Request, 
     response: Response, 
     search: str | None = None,
-    order_by: str | None = None,
+    sort_by: str | None = None,
     page: int = 1,
     limit: int = 10,
     session: AsyncSession = Depends(get_session)
 ):
-    ''' To get all the items from the store. '''
+    ''' Get all the items from the store. '''
     
     statement = select(Item)
     if search:
         statement = statement.where(col(Item.name).ilike(f"%{search}%"))
         
-    match order_by:
+    match sort_by:
         case "price_asc":
             statement = statement.order_by(col(Item.price))
         case "price_desc":
@@ -70,7 +69,7 @@ async def get_all_products(
 
 @router.get("/{item_id}", response_model=Item)
 async def get_single_item(item_id: int, response: Response, session: AsyncSession = Depends(get_session)):
-    ''' To get one item from the store by ID. Using Redis and HTTP Caching. '''
+    ''' Get one item from the store by ID. Using Redis and HTTP Caching. '''
     
     redis_key = f"items:{item_id}"
     cached_data = await redis_client.get(redis_key)
@@ -128,13 +127,13 @@ async def update_product(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    ''' To Update the product completely '''
+    ''' Update the product completely '''
     item = await session.get(Item, item_id)
     
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     if item.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Forbidden: You are not the author of this product!")
+        raise HTTPException(status_code=403, detail="Forbidden: You are not the author of this product.")
     
     update_data = item_update.model_dump()
     for key, value in update_data.items():
@@ -159,13 +158,13 @@ async def patch_product(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    ''' To Update the product '''
+    ''' Update the product '''
     item = await session.get(Item, item_id)
     
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     if item.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Forbidden: You are not the author of this product!")
+        raise HTTPException(status_code=403, detail="Forbidden: You are not the author of this product.")
     
     update_data = item_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -188,13 +187,13 @@ async def delete_product(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    ''' To delete the product '''
+    ''' Delete the product '''
     item = await session.get(Item, item_id)
     
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     if item.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Forbidden: You are not the author of this product!")
+        raise HTTPException(status_code=403, detail="Forbidden: You are not the author of this product")
         
     await session.delete(item)
     await session.commit()

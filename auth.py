@@ -13,14 +13,14 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 async def get_user_by_email(session: AsyncSession, email: str) -> User | None:
-    ''' To get user by email '''
+    ''' Get user by email '''
     statement = select(User).where(User.email == email)
     result = await session.execute(statement)
     return result.scalars().first()
 
 
 async def get_current_user(request: Request, session: AsyncSession = Depends(get_session)) -> User:
-    ''' To get current user '''
+    ''' Get current user '''
     token = request.cookies.get("shopping_session")
     
     if not token:

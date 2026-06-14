@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
         
         
 def hash_password(password: str) -> str:
-    '''Securely hash a password using direct bcrypt library.'''
+    ''' Securely hash a password using direct bcrypt library. '''
     
     pwd_bytes = password.encode('utf-8')
     if len(pwd_bytes) > 72:
@@ -18,7 +18,7 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    '''Verify password.'''
+    ''' Verify password. '''
     try:
         return bcrypt.checkpw(
             plain_password.encode('utf-8'), 
@@ -30,7 +30,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(data: dict) -> str:
-    '''Generate a secure JWT token containing user data with an expiration time.'''
+    ''' Generate a secure JWT token containing user data with an expiration time. '''
     
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=15)
@@ -42,7 +42,7 @@ def create_access_token(data: dict) -> str:
 
 
 def decode_access_token(token: str) -> str:
-    '''Decode JWT token and return the username.'''
+    ''' Decode JWT token and return the username. '''
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         username: str | None = payload.get("sub")

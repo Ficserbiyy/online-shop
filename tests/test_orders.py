@@ -2,8 +2,8 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 from main import app
 
-
 pytestmark = pytest.mark.asyncio
+
 
 
 async def test_create_order_workflow():
@@ -50,7 +50,6 @@ async def test_create_order_workflow():
         
         
         assert res_data["detail"] == "Order Successfully created", "Creation Failed"
-        print("ORDER_RESPONSE: ", order_response.json())
         
         # (80 * 2) + (15 * 3) = 205:
         assert res_data["total_cost"] == 205.0
@@ -74,7 +73,6 @@ async def test_create_order_workflow():
         
         assert bad_order_response.status_code == 400
         assert bad_order_response.json()["detail"] == f'Available quantity of products "Sublime Text 3" in the store: 3'
-        print("BAD_ORDER_RESPONSE: ", bad_order_response.json())
 
         
 
@@ -114,4 +112,4 @@ async def test_ownership_check(client):
     
     delete_res = await client.delete(f"/products/{product_id}")
     assert delete_res.status_code == 403
-    assert delete_res.json()["detail"] == "Forbidden: You are not the author of this product!"
+    assert delete_res.json()["detail"] == "Forbidden: You are not the author of this product."

@@ -1,7 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, timezone
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import BaseModel
 
 
 class UserBase(SQLModel):
@@ -13,7 +12,7 @@ class UserCreate(UserBase):
     password: str = Field(min_length=4)
 
 class User(UserBase, table=True):
-    ''' User '''
+    ''' User model '''
     id: int | None = Field(primary_key=True, default=None)
     is_active: bool = True
     hashed_password: str
@@ -44,19 +43,19 @@ class ItemCreate(SQLModel):
     stock_quantity: int = 0
 
 class ItemPatch(SQLModel):
-    ''' To PATCH the item '''
+    ''' To update the item '''
     name: str | None = None
     description: str | None = None
     price: float | None = None
     stock_quantity: int | None = None
 
 class Item(ItemCreate, table=True):
-    ''' Item '''
+    ''' Item model '''
     id: int | None = Field(primary_key=True, default=None)
     owner_id: int = Field(foreign_key="user.id")
 
 class Order(SQLModel, table=True):
-    ''' Order '''
+    ''' Order model '''
     id: int | None = Field(primary_key=True, default=None)
     user_id: int = Field(foreign_key="user.id")
     total_price: float

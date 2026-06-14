@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import select
-from sqlalchemy.orm import joinedload
+from fastapi import APIRouter, Depends, HTTPException
 from dbLogic import get_session, redis_client, AsyncSession
-from models import User, Order, OrderItem, Item, OrderCreate
+from models import User, Order, OrderItem, Item
 from auth import get_current_user 
 import json
 
@@ -16,7 +14,7 @@ async def create_multi_item_order(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    ''' To make an order with multiple items '''
+    ''' Make an order with multiple items '''
     assert current_user.id is not None, "User ID cannot be None"
     redis_key = f"cart:{current_user.id}"
     

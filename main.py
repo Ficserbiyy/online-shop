@@ -1,9 +1,6 @@
-from fastapi import FastAPI, Depends, status, Response, APIRouter, HTTPException, Request
-from typing import Final, List
-from dbLogic import create_db_and_tables, engine, get_session, AsyncSession, redis_client
+from fastapi import FastAPI
+from dbLogic import create_db_and_tables, engine, redis_client
 from contextlib import asynccontextmanager
-from models import User, UserBase, Item, Order, OrderItem, settings
-from sqlmodel import select
 from auth import router as auth_router
 from items import router as item_router
 from orders import router as order_router
@@ -19,7 +16,7 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
     
        
-app: Final = FastAPI(title="Shop API", lifespan=lifespan)
+app = FastAPI(title="Shop API", lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(item_router)
 app.include_router(order_router)
